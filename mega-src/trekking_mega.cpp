@@ -4,7 +4,10 @@
 
 #include "Logic/trekking.h"
 
-Trekking trekking;
+float max_linear_vel = 1.0;
+float max_angular_vel = 1.0;
+
+Trekking trekking(max_linear_vel, max_angular_vel);
 Position *cone_1 = new Position(0,0,0);
 Position *cone_2 = new Position(0,0,0);
 Position *cone_3 = new Position(0,0,0);

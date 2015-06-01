@@ -1,6 +1,5 @@
 #include "trekking.h"
 
-
 Trekking::Trekking():
 
 	//Motors
@@ -89,7 +88,7 @@ void Trekking::update() {
 
 	//Stop the robot if the emergency button is pressed or
 	//the stop command was received
-	if(current_command == 'S' || emergency_button) {
+	if(current_command == 'D' || emergency_button) {
 		stop();
 		operation_mode = &Trekking::standby;
 		log.assert("operation mode", "standby");
@@ -115,15 +114,15 @@ void Trekking::reset() {
 	is_aligned = false;
 	is_tracking = false;
 	current_target_index = 0;
-	Position trekking_position  = locator.getLastPosition();
-	distance_to_target = trekking_position.distanceFrom(targets.get(current_target_index));
+	distance_to_target = locator.getLastPosition()->distanceFrom(targets.get(current_target_index));
 	
 	//Go to the standby state
 	operation_mode = &Trekking::standby;
 	log.assert("operation mode", "standby");
 
 	//Trekking objects
-//	locator.reset();
+	Position initial_position(0,0,0);
+	locator.reset(initial_position);
 	robot.setPWM(MAX_MOTOR_PWM, MAX_MOTOR_PWM);
 	robot.stop();
 	// Kalman kalman;
@@ -178,6 +177,7 @@ void Trekking::standby() {
 			if(checkSensors()) {
 				operation_mode = &Trekking::search;
 				startTimers();
+				locator.start();
 				log.assert("operation mode", "search stage");
 			} else {
 				log.error("sensors", "sensors not working as expected");
@@ -190,55 +190,53 @@ void Trekking::standby() {
 }
 
 void Trekking::trackTrajectory() {
-	Position trekking_position = locator.getLastPosition();
-	distance_to_target = trekking_position.distanceFrom(targets.get(current_target_index));
+	Position* trekking_position = locator.getLastPosition();
+	distance_to_target = trekking_position->distanceFrom(targets.get(current_target_index));
+	tracking_regulation_timer.getElapsedTime();
 }
 
 void Trekking::planTrajectory(bool is_trajectory_linear, float velocity, Position* destination){
 	planned_trajectory.clear();
-	Position trekking_position = locator.getLastPosition();
+	Position* trekking_position = locator.getLastPosition();
 	if(is_trajectory_linear){
-		float path = trekking_position.distanceFrom(destination);
+		float path = trekking_position->distanceFrom(destination);
 		float time = path/velocity;
 		float delta_t = (float) READ_ENCODERS_TIME;
 		delta_t /= 1000; //Mills to sec
-		planned_trajectory.add(trekking_position);
+		planned_trajectory.add(*trekking_position);
 		float dirx = 1;
-		if (trekking_position.getX() > destination->getY()){
+		if (trekking_position->getX() > destination->getY()){
 			dirx = -1;
 		}
 		float diry = 1;
-		if (trekking_position.getY() > destination->getY()){
+		if (trekking_position->getY() > destination->getY()){
 			diry = -1;
 		}
-		float theta = trekking_position.getTheta();
+		float theta = trekking_position->getTheta();
 		for(float t = delta_t; t<time; t += delta_t){
 			float path_t = 	velocity*t;
 			Position position_t = Position(
-					trekking_position.getX() + path_t*cos(theta)*dirx, //x
-					trekking_position.getY() + path_t*sin(theta)*diry, //y
+					trekking_position->getX() + path_t*cos(theta)*dirx, //x
+					trekking_position->getY() + path_t*sin(theta)*diry, //y
 					theta);
 			planned_trajectory.add(position_t);
 		}
 	}
 	else{
 		//TODO:
-		float path = destination->getTheta() - trekking_position.getTheta();
+		float path = destination->getTheta() - trekking_position->getTheta();
 		float time = path/velocity;
 		float delta_t = (float) READ_ENCODERS_TIME;
 		delta_t /= 1000;
-		float x = trekking_position.getX();
-		float y = trekking_position.getY();
-		planned_trajectory.add(trekking_position);
+		float x = trekking_position->getX();
+		float y = trekking_position->getY();
+		planned_trajectory.add(*trekking_position);
 		for(float t = delta_t; t<time; t+= delta_t){
 			Position position_t = Position(x,y,
-					trekking_position.getTheta() +  velocity*t);
+					trekking_position->getTheta() +  velocity*t);
 			planned_trajectory.add(position_t);
 		}
 	}
-
-
-
 }
 
 //TODO: funcao de busca
@@ -317,8 +315,10 @@ void Trekking::debug() {
 		operation_mode = &Trekking::standby;
 	} else if(current_command == 'e') {
 		log.debug("debug command", "set to search");
-		operation_mode = &Trekking::search;
-
+		// operation_mode = &Trekking::search;
+		operation_mode_switch = AUTO_MODE;
+		init_button = true;
+		standby();
 	} else if(current_command == 'f') {
 		log.debug("debug command", "set to refined search");
 		operation_mode = &Trekking::refinedSearch;
@@ -331,12 +331,20 @@ void Trekking::debug() {
 		log.debug("debug command", "reset");
 		reset();
 
-	} else if(current_command == '1') {
+	} else if(current_command == 'W') {
 		log.debug("debug command", "turn on sirene");
 		turnOnSirene();
 
-	} else if(current_command == '2') {
+	} else if(current_command == 'w') {
 		log.debug("debug command", "turn off sirene");
 		turnOffSirene();
+	} else if(current_command == 'n') {
+		log.debug("debug command", "print encoders");
+		for(int i = 0; i < locator.encoder_list.size(); i++) {
+			Serial.print(locator.encoder_list.get(i)->getPulses());
+			Serial.print("\t");
+		}
+		Serial.println();
+		
 	}
 }

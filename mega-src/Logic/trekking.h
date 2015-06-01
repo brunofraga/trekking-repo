@@ -103,6 +103,7 @@ private:
 	//auxiliar
 	void planTrajectory(bool is_trajectory_linear, float velocity, Position* destination);
 	void trackTrajectory();
+	
 	/*----Operation modes----*/
 	void standby();
 	void search();

@@ -21,10 +21,24 @@ class Locator {
 public:
 	Locator(Stream *encoder_stream, Position initial_position);
 	~Locator();
+
+	//getters
+	const SimpleEncoder& getBackLeftEncoder() const;
+	const SimpleEncoder& getBackRightEncoder() const;
+	const EncoderList& getEncoderList() const;
+	const SimpleEncoder& getFrontLeftEncoder() const;
+	const SimpleEncoder& getFrontRightEncoder() const;
+	float getLastRobotAngularSpeed() const;
+	float getLastRobotLinearSpeed() const;
+	unsigned long getLastUpdateTime() const;
+	float getRobotAngularSpeed() const;
+	float getRobotLinearSpeed() const;
+
 	void start();
 	void update();
-	Position getLastPosition();
+	Position* getLastPosition();
 	void reset(Position new_position);
+	EncoderList encoder_list;
 
 private:
 	SimpleEncoder front_left_encoder;
@@ -33,20 +47,19 @@ private:
 	SimpleEncoder back_right_encoder;
 
 
-	EncoderList encoder_list;
 	unsigned long last_update_time;
-	float robot_linar_speed;
+	float robot_linear_speed;
 	float robot_angular_speed;
 	// Stream *encoder_stream;
 
 
-	float last_robot_linar_speed;
+	float last_robot_linear_speed;
 	float last_robot_angular_speed;
 	Position last_position;
 
 	
 	void calculateSpeeds(float pps[]);
-	Position calcutePosition(float deta_t);
+	void calcutePosition(float deta_t);
 	
 };
 

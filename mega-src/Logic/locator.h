@@ -46,7 +46,7 @@ private:
 
 	
 	void calculateSpeeds(float pps[]);
-	void calcutePosition(float deta_t);
+	Position calcutePosition(float deta_t);
 	
 };
 

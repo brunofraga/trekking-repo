@@ -28,7 +28,7 @@ private:
 	float angular_velocidy;
 
 	LinkedList<Position *> targets;
-	Position trekking_position;
+	LinkedList<Position> planned_trajectory;
 	int current_target_index;
 
 	const int COMMAND_BAUD_RATE;
@@ -38,6 +38,8 @@ private:
 	const byte MAX_MOTOR_PWM;
 	const int LIGHT_DURATION;
 	const float PROXIMITY_RADIUS;
+
+	const int READ_ENCODERS_TIME;
 
 	/*
 		Input states
@@ -99,7 +101,7 @@ private:
 	bool checkSensors();
 
 	//auxiliar
-	void planTrajectory(float vlinear, float vangular, Position destination);
+	void planTrajectory(bool is_trajectory_linear, float velocity, Position* destination);
 	void trackTrajectory();
 	/*----Operation modes----*/
 	void standby();

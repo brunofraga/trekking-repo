@@ -71,7 +71,7 @@ void Locator::calculateSpeeds(float rps[]){
 }
 
 
-void Locator::calcutePosition(float dT){
+Position Locator::calcutePosition(float dT){
 	float med_angular_speed = (robot_angular_speed + last_robot_angular_speed)/2;
 	float theta = last_position.getTheta() + med_angular_speed*dT;
 
@@ -83,4 +83,5 @@ void Locator::calcutePosition(float dT){
 	last_position.set(x, y, theta);
 	last_robot_linar_speed = robot_linar_speed;
 	last_robot_angular_speed = robot_angular_speed;
+	return last_position;
 }

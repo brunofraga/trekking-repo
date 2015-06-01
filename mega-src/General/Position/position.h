@@ -22,6 +22,8 @@ public:
 	void setX(float x);
 	void setY(float y);
 	void setTheta(float theta);
+
+	float distanceFrom(Position *position);
 };
 
 #endif

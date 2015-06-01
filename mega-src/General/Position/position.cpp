@@ -1,4 +1,5 @@
 #include "position.h"
+#include "Arduino.h"
 
 //construtores
 Position::Position(){
@@ -42,4 +43,8 @@ void Position::setY(float y){
 
 void Position::setTheta(float theta){
 	this->theta = theta;
+}
+
+float Position::distanceFrom(Position *position) {
+	return sqrt( sq((x - position->getX())) + sq(y - position->getY()) );
 }
